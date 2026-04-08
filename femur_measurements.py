@@ -248,11 +248,6 @@ if len(mid_band_pts) > 20:
 # =================================================
 # CORRECT EPICONDYLE LABELING FOR LEFT / RIGHT
 # =================================================
-if np.dot(epi_A - pts_mean, v_med) >= np.dot(epi_B - pts_mean, v_med):
-    epi_med, epi_lat = epi_A, epi_B
-else:
-    epi_med, epi_lat = epi_B, epi_A
-
 # epi_med: argmax on v_med — known to work correctly
 epi_med = distal_pts_77[np.argmax((distal_pts_77 - pts_mean) @ v_med)]
 
@@ -372,21 +367,21 @@ sub_pts = np.array(
     dtype=float
 )
 
-# 79 — Transverse subtrochanteric (v_ap direction)
-proj79 = (sub_pts - sub_origin) @ v_ap
+# 79 — Transverse subtrochanteric (ML, v_med direction)
+proj79 = (sub_pts - sub_origin) @ v_med
 p79_A  = sub_pts[np.argmin(proj79)]
 p79_B  = sub_pts[np.argmax(proj79)]
-add_point(p79_A, "79_Subtro_Anterior")
-add_point(p79_B, "79_Subtro_Posterior")
+add_point(p79_A, "79_Subtro_Lateral")
+add_point(p79_B, "79_Subtro_Medial")
 make_line("79_Transverse_subtrochanteric", p79_A, p79_B)
 len79 = dist3d(p79_A, p79_B)
 
-# 80 — AP subtrochanteric (v_med direction)
-proj80 = (sub_pts - sub_origin) @ v_med
+# 80 — Sagittal subtrochanteric (AP, v_ap direction)
+proj80 = (sub_pts - sub_origin) @ v_ap
 p80_A  = sub_pts[np.argmin(proj80)]
 p80_B  = sub_pts[np.argmax(proj80)]
-add_point(p80_A, "80_Subtro_Lateral")
-add_point(p80_B, "80_Subtro_Medial")
+add_point(p80_A, "80_Subtro_Anterior")
+add_point(p80_B, "80_Subtro_Posterior")
 make_line("80_AP_subtrochanteric", p80_A, p80_B)
 len80 = dist3d(p80_A, p80_B)
 
@@ -442,7 +437,8 @@ for k in range(len(hull_pts)):
     edge   = hull_pts[(k + 1) % len(hull_pts)] - hull_pts[k]
     edge  /= np.linalg.norm(edge)
     normal = np.array([-edge[1], edge[0]])
-    width  = float((hull_pts @ normal).ptp())
+    proj_n = hull_pts @ normal
+    width  = float(proj_n.max() - proj_n.min())
     if width < min_midshaft_diameter:
         min_midshaft_diameter = width
         best_normal           = normal
