@@ -496,7 +496,8 @@ class FemurMeasurementsLogic(ScriptedLoadableModuleLogic):
             edge   = hull_pts[(k + 1) % len(hull_pts)] - hull_pts[k]
             edge  /= np.linalg.norm(edge)
             normal = np.array([-edge[1], edge[0]])
-            width  = float((hull_pts @ normal).ptp())
+            proj_n = hull_pts @ normal
+            width  = float(proj_n.max() - proj_n.min())
             if width < min_midshaft_diameter:
                 min_midshaft_diameter = width
                 best_normal = normal
